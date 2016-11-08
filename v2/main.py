@@ -33,9 +33,9 @@ class MainHandler(tornado.web.RequestHandler):
 
     executor = ThreadPoolExecutor(2)
 
-    @tornado.gen.coroutine
+    @gen.coroutine
     def get(self):
-	self.time_delay(10)
+	yield self.time_delay(10)
         self.write("first--")
 	self.finish()
 
@@ -48,22 +48,40 @@ class SecondHandler(tornado.web.RequestHandler):
     
     executor = ThreadPoolExecutor(2)
 
-    @tornado.gen.coroutine
+    @gen.coroutine
     def get(self):
-	self.time_delay(10)
-	self.write("second--")
-	self.finish()
+	print "second-start",int(time.time())
+	s = yield self.time_delay(10)
+	print "second-end",int(time.time())
+	self.write(s)
 
     @run_on_executor
-    def time_delay(count):
+    def time_delay(self,count):
 	time.sleep(count)
 	return  "second"
+
+
+class ThirdHandler(tornado.web.RequestHandler):
+    executor = ThreadPoolExecutor(2)
+    @gen.coroutine
+    def get(self): 
+	print "third-start",int(time.time())
+    	mystr = yield self.api_1()
+	print "third-end",int(time.time())
+    	self.write(mystr)
+
+    @run_on_executor
+    def api_1(self):
+    	time.sleep(10)
+    	return "Hello Word"
+
 
 def main():
     tornado.options.parse_command_line()
     application = tornado.web.Application([
         (r"/first", MainHandler),
 	(r"/second", SecondHandler),
+	(r"/third", ThirdHandler)
     ])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
