@@ -1,0 +1,5 @@
+这是异步请求的方法之一
+原理是采用了多线程的方式
+具体细节参看 concurrent.futures.ThreadPoolExecutor和@run_on_executor
+
+这种方法在每个类中都创建了一个线程池,同线程来处理耗时的函数
